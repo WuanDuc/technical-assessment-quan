@@ -1,99 +1,222 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<h1 align="center">Product Management API with Custom Hashmap</h1>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> NestJS technical assessment project implementing full product CRUD, file attachments with nested folders, and a bespoke hashmap used to cache file metadata.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🎯 Overview
 
-## Description
+This service exposes a REST API for managing products and their related file attachments. Attachments are stored on disk under product-specific directories and surfaced through a tree endpoint that leverages a custom hashmap implementation purpose-built for caching upload metadata. The project is structured using NestJS modules, TypeORM repositories, and adheres to SOLID design principles.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ✅ Implemented Features
 
-## Project setup
+- RESTful product management (`POST/GET/PUT/DELETE /products`)
+- File attachments per product with optional nested folders (`POST /products/:id/attachments`)
+- Tree view of the upload directory (`GET /products/:id/attachments/tree`)
+- Custom linear-probing hashmap built from scratch + factory pattern
+- PostgreSQL persistence via TypeORM migrations
+- Auto-generated Swagger/OpenAPI documentation
+- Jest unit tests and Docker-ready runtime
 
-```bash
-$ npm install
+## 🧱 Tech Stack
+
+- **Runtime:** Node.js 20, NestJS 11
+- **Database:** PostgreSQL 13+ (or Docker container)
+- **ORM:** TypeORM 0.3+
+- **Validation & Docs:** class-validator, class-transformer, @nestjs/swagger
+- **Containerization:** Docker (multi-stage image)
+
+## 📁 Project Structure
+
+```
+src/
+├── common/             # Custom data structures & factories
+├── config/             # TypeORM data source
+├── entities/           # TypeORM entities (products, folders, attachments)
+├── migrations/         # Auto-generated migrations
+├── modules/
+│   ├── products/       # Product CRUD module
+│   └── attachments/    # Upload + tree view + hashmap cache
 ```
 
-## Compile and run the project
+## ✅ Prerequisites
 
-```bash
-# development
-$ npm run start
+- Node.js >= 20
+- npm >= 10
+- PostgreSQL >= 13 (or Docker Desktop)
+- Git
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
+## 1. Clone & Install
+
+```powershell
+git clone <repo-url>
+cd technical-assessment
+npm install
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## 2. Environment Configuration
 
-# e2e tests
-$ npm run test:e2e
+1. Copy the template:
 
-# test coverage
-$ npm run test:cov
+    ```powershell
+    Copy-Item .env.example .env
+    ```
+
+2. Update the variables to match your local database:
+
+    | Variable | Description | Example |
+    | --- | --- | --- |
+    | `PORT` | API port | `3001`
+    | `DB_HOST` | PostgreSQL host | `localhost`
+    | `DB_PORT` | PostgreSQL port | `5432`
+    | `DB_USERNAME` | Database user | `postgres`
+    | `DB_PASSWORD` | Database password | `super_secret`
+    | `DB_NAME` | Database name | `technical_assessment`
+    | `DB_TYPE` | TypeORM driver | `postgres`
+    | `JWT_SECRET` | JWT secret (future use) | `change_me`
+    | `JWT_EXPIRATION` | JWT TTL | `3600s`
+    | `NODE_ENV` | Environment | `development`
+    | `SWAGGER_ENABLED` | Toggle API docs | `true`
+    | `ALLOWED_ORIGINS` | Optional CORS CSV list | `http://localhost:4200`
+
+> **Note:** `SWAGGER_ENABLED=true` exposes docs at `/api` even outside development.
+
+---
+
+## 3. Database & Migrations
+
+### Option A – Run PostgreSQL with Docker
+
+```powershell
+docker run --name technical-assessment-db `
+  -e POSTGRES_DB=technical_assessment `
+  -e POSTGRES_USER=postgres `
+  -e POSTGRES_PASSWORD=postgres `
+  -p 5432:5432 `
+  -d postgres:16-alpine
 ```
 
-## Deployment
+Update `.env` to match the credentials you used above.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Apply Migrations
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```powershell
+# Run all pending migrations
+npm run migration:run
 
-```bash
-$ npm install -g mau
-$ mau deploy
+# Inspect migration status
+npm run migration:show
+
+# Revert last migration (if needed)
+npm run migration:revert
+
+# Generate a new migration from entity changes
+npm run migration:generate -- src/migrations/<MigrationName>
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+> Migrations are configured through `src/config/data-source.ts`.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## 4. Running the Application
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```powershell
+# Development (watch mode + Swagger at http://localhost:3001/api)
+npm run start:dev
 
-## Support
+# Production build
+npm run build
+npm run start:prod
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Plain start (no watch)
+npm run start
+```
 
-## Stay in touch
+The server listens on `PORT` (default `3001`).
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## 5. API Documentation (Swagger)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Swagger UI: `http://localhost:<PORT>/api`
+- Controlled by `.env` → `SWAGGER_ENABLED=true`
+- Custom tags: `Products`, `Attachments`
+- Includes bearer auth placeholder for future JWT integration
+
+---
+
+## 6. Testing & Quality
+
+```powershell
+# Lint with ESLint + Prettier
+npm run lint
+
+# Unit tests
+npm run test
+
+# Watch mode tests
+npm run test:watch
+
+# Test coverage report
+npm run test:cov
+```
+
+---
+
+## 7. Docker Image
+
+Build the production image using the provided multistage Dockerfile:
+
+```powershell
+# Build image
+docker build -t product-api .
+
+# Run container (make sure DB is reachable)
+docker run --name product-api `
+  --env-file .env `
+  -p 3001:3001 `
+  --network host `
+  product-api
+```
+
+> Adjust networking flags (`--network host`) based on your OS. Alternatively attach to the same Docker network as your PostgreSQL container.
+
+---
+
+## 8. Key Modules
+
+- `ProductsModule`: CRUD endpoints, DTO validation, Swagger docs
+- `AttachmentsModule`: file uploads via Multer, tree structure view, file metadata cache
+- `CustomHashmap`: linear probing implementation with insert/get/delete, resizing, and factory-driven instantiation (`src/common/data-structures/hashmap.ts`)
+
+---
+
+## 9. Troubleshooting
+
+- **Database connection errors** → ensure `.env` credentials match your running PostgreSQL instance and migrations have executed
+- **Swagger not available** → check `SWAGGER_ENABLED` and that `NODE_ENV` isn’t forcing production without the flag
+- **File uploads failing** → verify `/uploads` directory permissions (created automatically at runtime)
+
+---
+
+## 10. Next Steps & Enhancements
+
+- Add authentication/authorization around upload endpoints
+- Extend search & filtering for products
+- Implement pagination for `GET /products`
+- Add integration tests for attachments module
+
+---
+
+## ❌ Not Implemented (and Why)
+
+- **Authentication & Authorization** – Not required for the assessment scope; endpoints are currently open for faster evaluation.
+- **Advanced file validation (mime/size policies)** – Deferred to keep the focus on core upload/tree/hashmap requirements.
+- **Product search, filtering, and pagination** – Listed as nice-to-have features; omitted due to time constraints but outlined in "Next Steps" above.
+- **Rate limiting and RBAC** – Considered future enhancements once the foundational API is approved.
+
+---
+
+Made with ❤️ using NestJS.
