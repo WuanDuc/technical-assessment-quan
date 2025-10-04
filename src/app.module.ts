@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsModule } from './modules/products/products.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
 // import { DataSource } from 'typeorm';
 // import { ConfigModule } from '@nestjs/config';
 @Module({
@@ -44,6 +45,7 @@ import { ProductsModule } from './modules/products/products.module';
       }),
     }),
     ProductsModule,
+    AttachmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
