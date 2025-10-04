@@ -5,13 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsModule } from './modules/products/products.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
 // import { DataSource } from 'typeorm';
-// import { ConfigModule } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   cache: true, // Cache config
-    // }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true, // Cache config
+    }),
     // Database connection
     TypeOrmModule.forRootAsync({
       useFactory: () => ({

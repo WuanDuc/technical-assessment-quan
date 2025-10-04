@@ -1,5 +1,5 @@
 # Stage 1: Build the NestJS app
-FROM node:20-alpine AS builder
+FROM node:20.18-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Run the compiled app
-FROM node:20-alpine AS runner
+FROM node:20.18-alpine AS runner
 WORKDIR /app
 
 # Install only production dependencies
