@@ -14,12 +14,14 @@ RUN npm run build
 FROM node:20.18-alpine AS runner
 WORKDIR /app
 
-# Install only production dependencies
+# Copy package manifests and install dependencies (kept from builder)
 COPY package*.json ./
-RUN npm ci --omit=dev
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy compiled dist and other needed files
+# Copy compiled dist and entrypoint script
 COPY --from=builder /app/dist ./dist
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 3001
-CMD ["node", "dist/main"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

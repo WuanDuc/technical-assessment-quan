@@ -120,7 +120,9 @@ npm run migration:generate -- src/migrations/<MigrationName>
 
 ---
 
-## 4. Running the Application
+## 4. Run Without Docker (Standard Setup)
+
+Run the service directly with Node.js when Docker isn’t available or when you’re developing locally.
 
 ```powershell
 # Development (watch mode + Swagger at http://localhost:3001/api)
@@ -134,7 +136,7 @@ npm run start:prod
 npm run start
 ```
 
-The server listens on `PORT` (default `3001`).
+The server listens on `PORT` (default `3001`). Make sure your `.env` targets a reachable PostgreSQL instance.
 
 ---
 
@@ -165,9 +167,9 @@ npm run test:cov
 
 ---
 
-## 7. Docker Image
+## 7. Run With Docker (Local Image)
 
-Build the production image using the provided multistage Dockerfile:
+Build and run the service via the provided multi-stage Dockerfile when Docker is available locally:
 
 ```powershell
 # Build image
@@ -185,7 +187,35 @@ docker run --name product-api `
 
 ---
 
-## 8. Key Modules
+## 8. Run With GitHub Actions (Remote Docker Build)
+
+When local Docker isn’t an option (for example, due to WSL or hypervisor issues), use the included GitHub Actions workflow (`.github/workflows/docker-build.yml`) to build the image in the cloud and download the resulting artifact.
+
+```powershell
+# Trigger the workflow manually
+# GitHub UI → Actions → docker-build → Run workflow
+
+# Or push to main to let the workflow run automatically
+git push origin main
+```
+
+The workflow performs the following steps:
+
+1. Check out the repository.
+2. Set up Docker Buildx.
+3. Build the Docker image from `dockerfile` (no registry push).
+4. Save the image as `technical-assessment.tar` and upload it as an artifact (retained for 7 days).
+
+After the workflow completes, download the artifact from **Actions → specific run → Artifacts** and load it into any Docker daemon:
+
+```powershell
+docker load -i technical-assessment.tar
+docker run --rm -p 3001:3001 technical-assessment:ci-test
+```
+
+---
+
+## 9. Key Modules
 
 - `ProductsModule`: CRUD endpoints, DTO validation, Swagger docs
 - `AttachmentsModule`: file uploads via Multer, tree structure view, file metadata cache
@@ -193,7 +223,7 @@ docker run --name product-api `
 
 ---
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 - **Database connection errors** → ensure `.env` credentials match your running PostgreSQL instance and migrations have executed
 - **Swagger not available** → check `SWAGGER_ENABLED` and that `NODE_ENV` isn’t forcing production without the flag
@@ -201,7 +231,7 @@ docker run --name product-api `
 
 ---
 
-## 10. Next Steps & Enhancements
+## 11. Next Steps & Enhancements
 
 - Add authentication/authorization around upload endpoints
 - Extend search & filtering for products
