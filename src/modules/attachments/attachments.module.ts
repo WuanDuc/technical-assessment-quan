@@ -14,6 +14,7 @@ import { FileStorageService } from './file-storage.service';
 import { AttachmentsRepository } from './repositories/attachments.repository';
 import { FoldersRepository } from './repositories/folders.repository';
 import { TreeStructureService } from './tree-structure.service';
+import { existsSync, mkdirSync } from 'fs';
 
 @Module({
   imports: [
@@ -22,8 +23,16 @@ import { TreeStructureService } from './tree-structure.service';
     MulterModule.register({
       storage: diskStorage({
         destination: (req, file, cb) => {
-          const productId = req.params.id;
+          const productId = req.params.productId;
+          if (!productId) {
+            return cb(new Error('Missing productId route parameter'), '');
+          }
+
           const uploadPath = `./uploads/${productId}`;
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
+
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {

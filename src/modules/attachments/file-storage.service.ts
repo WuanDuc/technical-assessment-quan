@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { dirname, isAbsolute, join } from 'path';
 import { CustomHashmap } from 'src/common/data-structures/hashmap';
 import { HashmapFactory } from 'src/common/factories/hashmap-factory';
 import { FileMetadata } from 'src/common/interfaces/hashmap.interface';
@@ -22,6 +22,10 @@ export class FileStorageService {
     >(32, 0.75);
   }
 
+  private resolveAbsolutePath(filepath: string): string {
+    return isAbsolute(filepath) ? filepath : join(process.cwd(), filepath);
+  }
+
   /**
    * Ensure upload directory exists
    */
@@ -38,6 +42,36 @@ export class FileStorageService {
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to create upload directory: ${error instanceof Error ? error.message : JSON.stringify(error)}`,
+      );
+    }
+  }
+
+  async moveFile(source: string, destination: string): Promise<void> {
+    try {
+      const absoluteSource = this.resolveAbsolutePath(source);
+      const absoluteDestination = this.resolveAbsolutePath(destination);
+
+      if (absoluteSource === absoluteDestination) {
+        return;
+      }
+
+      await fs.mkdir(dirname(absoluteDestination), { recursive: true });
+      await fs.rename(absoluteSource, absoluteDestination);
+
+      // In some environments rename may copy instead of move; ensure source is removed.
+      try {
+        await fs.unlink(absoluteSource);
+      } catch (cleanupError) {
+        // Ignore if file is already gone; rethrow other errors.
+        if ((cleanupError as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw cleanupError;
+        }
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to relocate file: ${
+          error instanceof Error ? error.message : JSON.stringify(error)
+        }`,
       );
     }
   }
@@ -106,8 +140,8 @@ export class FileStorageService {
    */
   async deleteFile(filepath: string): Promise<void> {
     try {
-      const fullPath = join(process.cwd(), filepath);
-      await fs.unlink(fullPath);
+      const absolutePath = this.resolveAbsolutePath(filepath);
+      await fs.unlink(absolutePath);
     } catch (error) {
       throw new InternalServerErrorException(
         `Failed to delete file: ${error instanceof Error ? error.message : JSON.stringify(error)}`,
@@ -120,8 +154,8 @@ export class FileStorageService {
    */
   async fileExists(filepath: string): Promise<boolean> {
     try {
-      const fullPath = join(process.cwd(), filepath);
-      await fs.access(fullPath);
+      const absolutePath = this.resolveAbsolutePath(filepath);
+      await fs.access(absolutePath);
       return true;
     } catch {
       return false;

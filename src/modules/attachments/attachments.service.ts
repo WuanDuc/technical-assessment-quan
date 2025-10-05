@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { extname } from 'path';
+import { extname, isAbsolute, join } from 'path';
 import { AttachmentEntity } from 'src/entities/attachments.entity';
 import { FileMetadata } from '../../common/interfaces/hashmap.interface';
 import { ProductsService } from '../products/products.service';
@@ -43,7 +43,10 @@ export class AttachmentsService {
       throw new BadRequestException('Stored filename is missing');
     }
 
-    await this.fileStorageService.ensureUploadDirectory(productId, folderPath);
+    const targetDirectory = await this.fileStorageService.ensureUploadDirectory(
+      productId,
+      folderPath,
+    );
 
     let folderId: string | undefined;
     if (folderPath) {
@@ -52,7 +55,28 @@ export class AttachmentsService {
       folderId = targetFolder.id;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const initialAbsolutePath = (() => {
+      if (file.path) {
+        return isAbsolute(file.path)
+          ? file.path
+          : join(process.cwd(), file.path);
+      }
+
+      const destination = file.destination ?? join('uploads', productId);
+      const absoluteDestination = isAbsolute(destination)
+        ? destination
+        : join(process.cwd(), destination);
+      return join(absoluteDestination, storedName);
+    })();
+
+    const finalAbsolutePath = join(targetDirectory, storedName);
+    if (initialAbsolutePath !== finalAbsolutePath) {
+      await this.fileStorageService.moveFile(
+        initialAbsolutePath,
+        finalAbsolutePath,
+      );
+    }
+
     const extension = extname(originalName).replace('.', '');
     const filepath = `/uploads/${productId}${
       folderPath ? `/${folderPath}` : ''

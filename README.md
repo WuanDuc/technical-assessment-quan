@@ -210,6 +210,14 @@ docker run --name product-api `
 
 ---
 
+## 🔒 Custom Hashmap Usage
+
+- The bespoke `CustomHashmap` lives in [`src/common/data-structures/hashmap.ts`](src/common/data-structures/hashmap.ts) and is instantiated through [`HashmapFactory`](src/common/factories/hashmap-factory.ts).
+- [`FileStorageService`](src/modules/attachments/file-storage.service.ts) builds the hashmap once at startup and uses it to cache file metadata (`storeFileMetadata`, `getFileMetadata`, `deleteFileMetadata`, `getHashmapStats`).
+- [`AttachmentsService`](src/modules/attachments/attachments.service.ts) writes to the cache after each upload, reads from it for metadata endpoints, and removes entries during deletes—ensuring all attachment workflows rely on the custom structure rather than built-in `Map`.
+
+---
+
 ## ❌ Not Implemented (and Why)
 
 - **Authentication & Authorization** – Not required for the assessment scope; endpoints are currently open for faster evaluation.
