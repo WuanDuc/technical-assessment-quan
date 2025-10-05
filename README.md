@@ -2,11 +2,11 @@
 
 > NestJS technical assessment project implementing full product CRUD, file attachments with nested folders, and a bespoke hashmap used to cache file metadata.
 
-## 🎯 Overview
+## Overview
 
 This service exposes a REST API for managing products and their related file attachments. Attachments are stored on disk under product-specific directories and surfaced through a tree endpoint that leverages a custom hashmap implementation purpose-built for caching upload metadata. The project is structured using NestJS modules, TypeORM repositories, and adheres to SOLID design principles.
 
-## ✅ Implemented Features
+## Implemented Features
 
 - RESTful product management (`POST/GET/PUT/DELETE /products`)
 - File attachments per product with optional nested folders (`POST /products/:id/attachments`)
@@ -16,7 +16,7 @@ This service exposes a REST API for managing products and their related file att
 - Auto-generated Swagger/OpenAPI documentation
 - Jest unit tests and Docker-ready runtime
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - **Runtime:** Node.js 20, NestJS 11
 - **Database:** PostgreSQL 13+ (or Docker container)
@@ -24,7 +24,7 @@ This service exposes a REST API for managing products and their related file att
 - **Validation & Docs:** class-validator, class-transformer, @nestjs/swagger
 - **Containerization:** Docker (multi-stage image)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -37,7 +37,7 @@ src/
 │   └── attachments/    # Upload + tree view + hashmap cache
 ```
 
-## ✅ Prerequisites
+## Prerequisites
 
 - Node.js >= 20
 - npm >= 10
@@ -240,7 +240,7 @@ docker run --rm -p 3001:3001 technical-assessment:ci-test
 
 ---
 
-## 🔒 Custom Hashmap Usage
+## Custom Hashmap Usage
 
 - The bespoke `CustomHashmap` lives in [`src/common/data-structures/hashmap.ts`](src/common/data-structures/hashmap.ts) and is instantiated through [`HashmapFactory`](src/common/factories/hashmap-factory.ts).
 - [`FileStorageService`](src/modules/attachments/file-storage.service.ts) builds the hashmap once at startup and uses it to cache file metadata (`storeFileMetadata`, `getFileMetadata`, `deleteFileMetadata`, `getHashmapStats`).
@@ -248,7 +248,7 @@ docker run --rm -p 3001:3001 technical-assessment:ci-test
 
 ---
 
-## ❌ Not Implemented (and Why)
+## Not Implemented (and Why)
 
 - **Authentication & Authorization** – Not required for the assessment scope; endpoints are currently open for faster evaluation.
 - **Advanced file validation (mime/size policies)** – Deferred to keep the focus on core upload/tree/hashmap requirements.
@@ -257,4 +257,4 @@ docker run --rm -p 3001:3001 technical-assessment:ci-test
 
 ---
 
-Made with ❤️ using NestJS.
+Made with NestJS.
